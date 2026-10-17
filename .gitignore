@@ -1,0 +1,44 @@
+# Flutter & Dart
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/.pub-cache/
+frontend/.pub/
+frontend/build/
+**/build/
+frontend/coverage/
+
+# Android build outputs & local properties
+frontend/android/.gradle/
+frontend/android/local.properties
+**/android/.gradle/
+**/android/**/build/
+
+# iOS build outputs & ephemeral files
+frontend/ios/Flutter/ephemeral/
+frontend/ios/Flutter/Generated.xcconfig
+frontend/ios/Flutter/flutter_export_environment.sh
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+
+# Java & Maven
+backend-java/target/
+**/target/
+*.class
+
+# Binaries & APKs (keep repository light, publish APKs via GitHub Releases)
+flutter-apk/
+*.apk
+*.aab
+
+# IDEs & Editors
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
