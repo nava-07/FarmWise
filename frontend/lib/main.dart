@@ -6,7 +6,6 @@ import 'providers/navigation_provider.dart';
 import 'providers/language_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/notification_service.dart';
-import 'services/scheduler_service.dart';
 import 'services/welcome_service.dart';
 import 'services/ai_service.dart';
 
@@ -19,7 +18,6 @@ void main() async {
     await notificationService.init();
     await notificationService.requestPermissions();
     await WelcomeService.checkAndShowWelcomeNotification();
-    await SchedulerService.schedulePreciseNotifications();
   } catch (e) {
     debugPrint('Notification init error: $e');
   }
@@ -36,33 +34,8 @@ void main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      // Keep background schedules updated when resuming
-      SchedulerService.schedulePreciseNotifications();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

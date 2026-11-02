@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'main_layout.dart';
 import '../theme.dart';
+import '../services/welcome_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,6 +32,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _animationController.forward();
+
+    // Trigger welcome notification for fresh app entry (first install or after clearing RAM)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      WelcomeService.checkAndShowWelcomeNotification();
+    });
 
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {

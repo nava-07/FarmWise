@@ -43,6 +43,9 @@ class NotificationService {
         },
       );
 
+      // Cancel any legacy scheduled alarms to prevent unwanted background notification spam
+      await _notifications.cancelAll();
+
       _isInitialized = true;
     } catch (e) {
       debugPrint('Error initializing notification service: $e');
@@ -78,13 +81,13 @@ class NotificationService {
       return;
     }
     try {
-      const androidDetails = AndroidNotificationDetails(
+      final androidDetails = AndroidNotificationDetails(
         'farmwise_general_channel',
         'FarmWise Notifications',
         channelDescription: 'Important updates, tasks, and weather intel from FarmWise',
         importance: Importance.max,
         priority: Priority.high,
-        styleInformation: BigTextStyleInformation(''),
+        styleInformation: BigTextStyleInformation(body),
       );
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
