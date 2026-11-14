@@ -272,6 +272,7 @@ class _DiseaseScreenState extends State<DiseaseScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                _buildVoiceAssistantCard(),
                 Text(
                   'Scan Crop for Diseases'.tr(context),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textMain),
@@ -453,6 +454,80 @@ class _DiseaseScreenState extends State<DiseaseScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildVoiceAssistantCard() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: _voiceEnabled ? AppColors.error.withValues(alpha: 0.08) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _voiceEnabled ? AppColors.error : Colors.grey.shade300,
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: _voiceEnabled ? AppColors.error : Colors.grey.shade400,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              _voiceEnabled ? Icons.volume_up : Icons.volume_off,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _voiceEnabled ? 'Voice Assistant: ON'.tr(context) : 'Voice Assistant: OFF'.tr(context),
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: _voiceEnabled ? AppColors.error : AppColors.textMain,
+                  ),
+                ),
+                Text(
+                  _voiceEnabled
+                      ? 'Reads plant disease diagnosis aloud'.tr(context)
+                      : 'Turn on to hear spoken disease advice'.tr(context),
+                  style: const TextStyle(fontSize: 11.5, color: AppColors.textLight),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: _voiceEnabled,
+            activeColor: AppColors.error,
+            onChanged: (val) {
+              setState(() {
+                _voiceEnabled = val;
+                if (!_voiceEnabled) {
+                  VoiceService().stop();
+                } else {
+                  VoiceService().speak('Voice Assistant is now active'.tr(context));
+                }
+              });
+            },
+          ),
+        ],
       ),
     );
   }

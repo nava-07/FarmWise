@@ -16,23 +16,42 @@ class AIService {
   static const _diseaseScanApiKey = String.fromEnvironment('DISEASE_SCAN_API_KEY', defaultValue: 'YOUR_GEMINI_API_KEY');
   static const _assistantApiKey = String.fromEnvironment('ASSISTANT_API_KEY', defaultValue: 'YOUR_GEMINI_API_KEY');
 
-  late final GenerativeModel _cropModel;
-  late final GenerativeModel _diseaseModel;
-  late final GenerativeModel _assistantModel;
+  // High-limit, low-latency lightweight models for maximum request throughput
+  static const _primaryModel = 'gemini-3.5-flash-lite';
+  static const _fallbackModel = 'gemini-3.5-flash';
+
+  GenerativeModel? _cropModel;
+  GenerativeModel? _diseaseModel;
+  GenerativeModel? _assistantModel;
 
   void init() {
     _cropModel = GenerativeModel(
-      model: 'gemini-flash-latest',
+      model: _primaryModel,
       apiKey: _cropRecApiKey,
     );
     _diseaseModel = GenerativeModel(
-      model: 'gemini-flash-latest',
+      model: _primaryModel,
       apiKey: _diseaseScanApiKey,
     );
     _assistantModel = GenerativeModel(
-      model: 'gemini-flash-latest',
+      model: _primaryModel,
       apiKey: _assistantApiKey,
     );
+  }
+
+  GenerativeModel get cropModel {
+    _cropModel ??= GenerativeModel(model: _primaryModel, apiKey: _cropRecApiKey);
+    return _cropModel!;
+  }
+
+  GenerativeModel get diseaseModel {
+    _diseaseModel ??= GenerativeModel(model: _primaryModel, apiKey: _diseaseScanApiKey);
+    return _diseaseModel!;
+  }
+
+  GenerativeModel get assistantModel {
+    _assistantModel ??= GenerativeModel(model: _primaryModel, apiKey: _assistantApiKey);
+    return _assistantModel!;
   }
 
   String _extractValue(String line) {
@@ -50,7 +69,7 @@ class AIService {
 
   /// Starts a new interactive chat session
   ChatSession getChatSession() {
-    return _assistantModel.startChat();
+    return assistantModel.startChat();
   }
 
   /// Generates a crop recommendation based on location and weather
@@ -82,7 +101,7 @@ IMPORTANT REQUIREMENT: The user's selected language is $langName ($langNative). 
 ''';
 
     try {
-      final response = await _cropModel.generateContent([Content.text(prompt)]);
+      final response = await cropModel.generateContent([Content.text(prompt)]);
       return response.text ?? 'No recommendations could be generated.';
     } catch (e) {
       debugPrint('Error generating crop recommendations: $e');
@@ -124,7 +143,7 @@ IMPORTANT REQUIREMENT: The user's selected language is $langName ($langNative). 
 
     try {
       final bytes = await imageFile.readAsBytes();
-      final response = await _diseaseModel.generateContent([
+      final response = await diseaseModel.generateContent([
         Content.multi([
           TextPart(prompt),
           DataPart(imageFile.mimeType ?? 'image/jpeg', bytes),
@@ -178,12 +197,24 @@ TREATMENT_PLAN:
 
     try {
       final bytes = await imageFile.readAsBytes();
-      final response = await _diseaseModel.generateContent([
-        Content.multi([
-          TextPart(prompt),
-          DataPart(imageFile.mimeType ?? 'image/jpeg', bytes),
-        ])
-      ]);
+      GenerateContentResponse response;
+      try {
+        response = await diseaseModel.generateContent([
+          Content.multi([
+            TextPart(prompt),
+            DataPart(imageFile.mimeType ?? 'image/jpeg', bytes),
+          ])
+        ]);
+      } catch (err) {
+        debugPrint('Primary disease model failed, using fallback: $err');
+        final fallback = GenerativeModel(model: _fallbackModel, apiKey: _diseaseScanApiKey);
+        response = await fallback.generateContent([
+          Content.multi([
+            TextPart(prompt),
+            DataPart(imageFile.mimeType ?? 'image/jpeg', bytes),
+          ])
+        ]);
+      }
       String text = response.text ?? '';
       
       // Clean up markdown code block wrappers
@@ -279,7 +310,14 @@ EXPECTED_YIELD: [Estimated harvest yield per hectare in $langName]
 ''';
 
     try {
-      final response = await _cropModel.generateContent([Content.text(prompt)]);
+      GenerateContentResponse response;
+      try {
+        response = await cropModel.generateContent([Content.text(prompt)]);
+      } catch (err) {
+        debugPrint('Primary crop model failed, using fallback: $err');
+        final fallback = GenerativeModel(model: _fallbackModel, apiKey: _cropRecApiKey);
+        response = await fallback.generateContent([Content.text(prompt)]);
+      }
       final text = response.text ?? '';
       
       String mainCrop = '';

@@ -94,7 +94,7 @@ class NotificationService {
         presentBadge: true,
         presentSound: true,
       );
-      const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+      final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
       await _notifications.show(
         id: id,
@@ -134,7 +134,7 @@ class NotificationService {
         presentBadge: true,
         presentSound: true,
       );
-      const details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+      final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
 
       await _notifications.zonedSchedule(
         id: id,
